@@ -1,9 +1,9 @@
 """The only module that talks to a model.
 
 A provider yields (event, data) pairs matching the wire protocol in the
-README: "sources" once, "token" repeatedly, "done" once. Phase 0 ships the
-mock; the real provider (ask-my-repo's retrieve + a streaming answer behind
-this same interface) lands in Phase 1 — see PLAN.md.
+README: "sources" once, "token" repeatedly, "done" once. The real provider
+wraps ask-my-repo (pgvector retrieve, then a streamed grounded answer); the
+mock keeps the whole path exercisable keyless.
 """
 
 import asyncio
@@ -52,11 +52,51 @@ class MockProvider:
         yield "done", {"elapsed_ms": int((time.monotonic() - start) * 1000)}
 
 
-def get_provider() -> MockProvider:
-    if config.ANTHROPIC_API_KEY and config.VOYAGE_API_KEY and config.DATABASE_URL:
-        reason = "keys are set, but the real pipeline lands in Phase 1 (PLAN.md)"
-    else:
-        reason = "no ANTHROPIC_API_KEY / VOYAGE_API_KEY / DATABASE_URL configured"
+def _answer_stream(question: str):
+    from ask_my_repo.answer import answer_stream
+
+    return answer_stream(question, dsn=config.DATABASE_URL or None)
+
+
+class RealProvider:
+    """ask-my-repo behind the wire protocol: retrieve, then stream the answer.
+
+    ask-my-repo's API is synchronous, so retrieval and each delta fetch run on
+    worker threads to keep the event loop (and other streams) unblocked.
+    """
+
+    name = "real"
+
+    async def answer(self, question: str, repo: str) -> AsyncIterator[Event]:
+        start = time.monotonic()
+        chunks, deltas = await asyncio.to_thread(_answer_stream, question)
+        yield "sources", [
+            {"path": c.path, "start_line": c.start_line, "end_line": c.end_line}
+            for c in chunks
+        ]
+        while (delta := await asyncio.to_thread(next, deltas, None)) is not None:
+            yield "token", {"text": delta}
+        yield "done", {"elapsed_ms": int((time.monotonic() - start) * 1000)}
+
+
+def _real_unavailable_reason() -> str | None:
+    if not (config.ANTHROPIC_API_KEY and config.VOYAGE_API_KEY and config.DATABASE_URL):
+        return "no ANTHROPIC_API_KEY / VOYAGE_API_KEY / DATABASE_URL configured"
+    try:
+        from ask_my_repo.config import CONFIG as amr_config
+    except ImportError:
+        return "ask-my-repo is not installed"
+    if amr_config.prefer_local:
+        # the index is built with Voyage embeddings; a local-first query would
+        # search it with vectors from a different model's space
+        return "AMR_PREFER_LOCAL must be 0 so query embeddings match the Voyage-built index"
+    return None
+
+
+def get_provider() -> MockProvider | RealProvider:
+    reason = _real_unavailable_reason()
+    if reason is None:
+        return RealProvider()
     if config.PROVIDER_STRICT:
         raise RuntimeError(
             f"PROVIDER_STRICT=1 but the real provider is unavailable: {reason}"
