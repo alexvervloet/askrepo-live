@@ -16,19 +16,25 @@ surprise you.
 
 ## Phase 1 — real pipeline (done when a real cited answer renders locally)
 
-- [ ] Add `pyproject.toml` to ask-my-repo so it installs as a package
-      (`pip install git+https://github.com/alexvervloet/ask-my-repo`) — small
-      upstream PR to the flagship, its own lesson
-- [ ] Local pgvector via Docker; index the demo corpora with ask-my-repo's CLI
-- [ ] `RealProvider` wraps `retrieve()` + a **streaming** `answer()` behind the
-      same event interface as the mock (upstream `answer.py` may need a
-      streaming variant — verify live before assuming it's easy)
+- [x] Add `pyproject.toml` to ask-my-repo so it installs as a package —
+      upstream [PR #1](https://github.com/alexvervloet/ask-my-repo/pull/1),
+      which also adds `AMR_PREFER_LOCAL`, `complete_stream()`, `answer_stream()`
+- [ ] Swap the requirements pin from the `packaging-and-streaming` branch to
+      main once PR #1 merges
+- [x] Local pgvector via Docker (`askrepo-live-pg` on :5434; rag-at-scale owns
+      :5432); indexed with ask-my-repo's CLI, Voyage forced via
+      `AMR_PREFER_LOCAL=0`
+- [x] `RealProvider` wraps `answer_stream()` behind the same event interface as
+      the mock — the suspected upstream streaming variant was indeed needed
 - [ ] Frontend renders real citations that deep-link to the right GitHub lines
-- [ ] Fill the corpus table:
+      (API delivers real sources — verified; browser rendering not yet driven,
+      same open box as Phase 0)
+- [x] Corpus table (2026-07-17, voyage-3, 1024-d; answer e2e: 13.4s total for
+      a 5-citation grounded answer via claude-opus-4-8):
 
 | corpus | chunks | index time | embed cost ($) |
 |---|---|---|---|
-| ask-my-repo | | | |
+| ask-my-repo | 75 (11 files) | 1.4s | ~$0.0008 (~12.6k tokens) |
 | (second repo TBD) | | | |
 
 ## Phase 2 — guardrails (done when the abuse tests pass)
@@ -75,3 +81,12 @@ surprise you.
   appears contiguously in the raw SSE body; each word is its own `token` frame.
   Anything that searches the stream (tests, log greps) must reassemble the
   token frames first, the way the frontend does.
+- **2026-07-17** — **index and query embeddings must come from the same
+  model.** ask-my-repo embeds queries local-first, so an index built with
+  Voyage would be searched with LM Studio vectors whenever the local box is
+  reachable — silently wrong answers, no error. Hence upstream
+  `AMR_PREFER_LOCAL=0` (forced in the Docker image) and the hard gate in
+  `get_provider()`: real mode refuses to start unless the flag is set.
+- **2026-07-17** — ask-my-repo's `Config` reads env at class-definition time
+  (dataclass field defaults), so `AMR_*` vars must be set before the process
+  starts / the module imports — setting them in code after import does nothing.
