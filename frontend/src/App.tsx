@@ -15,6 +15,7 @@ export default function App() {
   const [status, setStatus] = useState<Status>("idle");
   const [error, setError] = useState("");
   const [lastAsked, setLastAsked] = useState<{ question: string; repo: string } | null>(null);
+  const [elapsedMs, setElapsedMs] = useState<number | null>(null);
   const abortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
@@ -47,6 +48,7 @@ export default function App() {
         setStatus("error");
         break;
       case "done":
+        setElapsedMs(e.elapsed_ms);
         break;
     }
   }
@@ -58,6 +60,7 @@ export default function App() {
     setSources([]);
     setProvider("");
     setError("");
+    setElapsedMs(null);
     setStatus("streaming");
     const ac = new AbortController();
     abortRef.current = ac;
@@ -154,6 +157,12 @@ export default function App() {
             <Markdown remarkPlugins={[remarkGfm]}>{answer}</Markdown>
             {status === "streaming" && <span className="cursor">▌</span>}
           </div>
+          {elapsedMs !== null && (
+            <p className="answer-meta">
+              {provider === "mock" ? "mock provider (canned)" : "retrieval + Claude"} ·{" "}
+              {(elapsedMs / 1000).toFixed(1)}s
+            </p>
+          )}
         </section>
       )}
 

@@ -153,6 +153,12 @@ h2 {
   padding: 0.3rem 0.6rem;
 }
 
+.answer-meta {
+  margin: 0.5rem 0 0;
+  font-size: 0.75rem;
+  opacity: 0.55;
+}
+
 .cursor {
   animation: blink 1s step-end infinite;
 }
