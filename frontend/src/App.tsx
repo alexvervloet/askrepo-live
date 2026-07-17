@@ -14,6 +14,7 @@ export default function App() {
   const [provider, setProvider] = useState("");
   const [status, setStatus] = useState<Status>("idle");
   const [error, setError] = useState("");
+  const [lastAsked, setLastAsked] = useState<{ question: string; repo: string } | null>(null);
   const abortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
@@ -50,8 +51,9 @@ export default function App() {
     }
   }
 
-  async function ask() {
-    if (!question.trim() || status === "streaming") return;
+  async function run(q: string, repo: string) {
+    if (!q.trim() || status === "streaming") return;
+    setLastAsked({ question: q, repo });
     setAnswer("");
     setSources([]);
     setProvider("");
@@ -60,7 +62,7 @@ export default function App() {
     const ac = new AbortController();
     abortRef.current = ac;
     try {
-      await askStream(question, repoName, onEvent, ac.signal);
+      await askStream(q, repo, onEvent, ac.signal);
       setStatus("idle");
     } catch (e) {
       if (ac.signal.aborted) {
@@ -70,6 +72,14 @@ export default function App() {
         setStatus("error");
       }
     }
+  }
+
+  function ask() {
+    return run(question, repoName);
+  }
+
+  function regenerate() {
+    if (lastAsked) void run(lastAsked.question, lastAsked.repo);
   }
 
   function stop() {
@@ -115,15 +125,24 @@ export default function App() {
             maxLength={500}
           />
         </label>
-        {status === "streaming" ? (
-          <button type="button" onClick={stop}>
-            Stop
-          </button>
-        ) : (
-          <button type="submit" disabled={!question.trim() || repos.length === 0}>
-            Ask
-          </button>
-        )}
+        <div className="actions">
+          {status === "streaming" ? (
+            <button type="button" onClick={stop}>
+              Stop
+            </button>
+          ) : (
+            <>
+              <button type="submit" disabled={!question.trim() || repos.length === 0}>
+                Ask
+              </button>
+              {lastAsked && (
+                <button type="button" className="secondary" onClick={regenerate}>
+                  Regenerate
+                </button>
+              )}
+            </>
+          )}
+        </div>
       </form>
 
       {error && <div className="error">{error}</div>}
