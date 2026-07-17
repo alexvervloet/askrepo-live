@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from "react";
+import Markdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { askStream, fetchRepos, type AskEvent, type Repo, type Source } from "./api";
 
 type Status = "idle" | "streaming" | "error";
@@ -129,10 +131,10 @@ export default function App() {
       {(answer || status === "streaming") && (
         <section className="answer">
           <h2>Answer</h2>
-          <p>
-            {answer}
+          <div className="answer-body">
+            <Markdown remarkPlugins={[remarkGfm]}>{answer}</Markdown>
             {status === "streaming" && <span className="cursor">▌</span>}
-          </p>
+          </div>
         </section>
       )}
 
