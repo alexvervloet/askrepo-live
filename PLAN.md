@@ -6,13 +6,13 @@ surprise you.
 
 ## Phase 0 — plumbing (done when the keyless smoke passes)
 
-- [ ] `python check_setup.py` all green
-- [ ] `python -m pytest backend` green — healthz, corpus list, SSE stream
+- [x] `python check_setup.py` all green
+- [x] `python -m pytest backend` green — healthz, corpus list, SSE stream
       shape (meta → sources → token… → done), unknown-repo 404, overlong-question 422
-- [ ] `curl -N` against `/api/ask` shows the mock answer streaming as SSE frames
+- [x] `curl -N` against `/api/ask` shows the mock answer streaming as SSE frames
 - [ ] `npm run dev` + backend: the browser UI streams the mock answer, shows
       the MOCK badge, sources render as GitHub deep links, Stop aborts mid-stream
-- [ ] `npm run build` clean (tsc + vite)
+- [x] `npm run build` clean (tsc + vite)
 
 ## Phase 1 — real pipeline (done when a real cited answer renders locally)
 
@@ -71,4 +71,7 @@ surprise you.
 
 ## Gotcha log
 
-- (write things down the moment they surprise you)
+- **2026-07-17** — a marker streamed word-by-word (`[MOCK FALLBACK]`) never
+  appears contiguously in the raw SSE body; each word is its own `token` frame.
+  Anything that searches the stream (tests, log greps) must reassemble the
+  token frames first, the way the frontend does.
