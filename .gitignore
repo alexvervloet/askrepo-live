@@ -1,0 +1,15 @@
+# python
+.venv/
+__pycache__/
+*.pyc
+
+# node
+node_modules/
+dist/
+
+# never — keys live in the Keychain, injected by secrun
+.env
+
+# local artifacts
+results/
+.DS_Store
