@@ -13,3 +13,4 @@ dist/
 # local artifacts
 results/
 .DS_Store
+*.tsbuildinfo
