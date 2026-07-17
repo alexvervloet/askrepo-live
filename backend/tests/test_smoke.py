@@ -1,5 +1,7 @@
 """API smoke tests — no keys, no network, run against the mock provider."""
 
+import json
+
 from fastapi.testclient import TestClient
 
 from askrepo_live.main import app
@@ -33,7 +35,13 @@ def test_ask_streams_meta_sources_tokens_done_in_order():
     positions = [body.index(f"event: {e}") for e in ("meta", "sources", "token", "done")]
     assert positions == sorted(positions)
     assert "error" not in body
-    assert "MOCK FALLBACK" in body  # keyless degradation must be loud
+    # reassemble the token frames the way the frontend does
+    answer = "".join(
+        json.loads(frame.split("data: ", 1)[1])["text"]
+        for frame in body.split("\n\n")
+        if frame.startswith("event: token")
+    )
+    assert "[MOCK FALLBACK]" in answer  # keyless degradation must be loud
 
 
 def test_unknown_repo_is_404():
