@@ -10,8 +10,9 @@ surprise you.
 - [x] `python -m pytest backend` green — healthz, corpus list, SSE stream
       shape (meta → sources → token… → done), unknown-repo 404, overlong-question 422
 - [x] `curl -N` against `/api/ask` shows the mock answer streaming as SSE frames
-- [ ] `npm run dev` + backend: the browser UI streams the mock answer, shows
-      the MOCK badge, sources render as GitHub deep links, Stop aborts mid-stream
+- [x] `npm run dev` + backend: the browser UI streams the mock answer, shows
+      the MOCK badge, sources render as GitHub deep links, Stop aborts
+      mid-stream (verified in-browser 2026-07-17)
 - [x] `npm run build` clean (tsc + vite)
 
 ## Phase 1 — real pipeline (done when a real cited answer renders locally)
@@ -26,9 +27,8 @@ surprise you.
       `AMR_PREFER_LOCAL=0`
 - [x] `RealProvider` wraps `answer_stream()` behind the same event interface as
       the mock — the suspected upstream streaming variant was indeed needed
-- [ ] Frontend renders real citations that deep-link to the right GitHub lines
-      (API delivers real sources — verified; browser rendering not yet driven,
-      same open box as Phase 0)
+- [x] Frontend renders real citations that deep-link to the right GitHub lines
+      (verified in-browser 2026-07-17)
 - [x] Corpus table (2026-07-17, voyage-3, 1024-d; answer e2e: 13.4s total for
       a 5-citation grounded answer via claude-opus-4-8):
 
