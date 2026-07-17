@@ -49,10 +49,20 @@ surprise you.
 
 ## Phase 3 — frontend polish (done when the demo GIF is in the README)
 
-- [ ] Regenerate button; error and budget-exhausted states that don't look broken
-- [ ] Mobile pass — this will be opened from a phone via a résumé link
-- [ ] MOCK badge only when provider=mock; provider shown subtly when real
-- [ ] Short screen-recording GIF in the README
+- [x] Regenerate button (re-runs the last *asked* question, not the edited
+      textarea); error panel with `role="alert"`, parsed FastAPI detail, and a
+      regenerate hint. Budget-exhausted arrives as an `error` frame with a
+      friendly message (Phase 2), which this panel renders as-is.
+- [x] Answers render as markdown (react-markdown + remark-gfm) — real answers
+      arrive with headings, code blocks, and tables; added beyond the original
+      DoD because plain text undersold them
+- [x] Mobile pass in code — theme-color metas, 44px touch targets, full-width
+      buttons under 480px, long source paths wrap. Check on an actual phone
+      before calling Phase 5 done.
+- [x] MOCK badge only when provider=mock; real mode shows a subtle
+      "retrieval + Claude · Ns" footer under the answer
+- [ ] Short screen-recording GIF in the README — needs a human screen recording
+      (QuickTime/Kap), then `![demo](assets/demo.gif)` in the README
 
 ## Phase 4 — containerize (done when the fresh-machine block works)
 
