@@ -148,7 +148,12 @@ export default function App() {
         </div>
       </form>
 
-      {error && <div className="error">{error}</div>}
+      {error && (
+        <div className="error" role="alert">
+          <strong>Something went wrong.</strong> {error}
+          {lastAsked && status !== "streaming" && " You can regenerate to try again."}
+        </div>
+      )}
 
       {(answer || status === "streaming") && (
         <section className="answer">

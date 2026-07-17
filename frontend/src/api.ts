@@ -39,8 +39,14 @@ export async function askStream(
     signal,
   });
   if (!res.ok || !res.body) {
-    const detail = await res.text().catch(() => "");
-    throw new Error(`ask failed (${res.status}) ${detail}`.trim());
+    const raw = await res.text().catch(() => "");
+    let detail = raw;
+    try {
+      detail = JSON.parse(raw).detail ?? raw;
+    } catch {
+      // not JSON — show the raw body
+    }
+    throw new Error(detail || `request failed (${res.status})`);
   }
 
   const reader = res.body.getReader();
