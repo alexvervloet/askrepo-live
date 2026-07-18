@@ -1,22 +1,22 @@
-// record-demo.mjs — regenerate assets/demo.gif + assets/demo-card.png.
+// record-demo.mjs: regenerate assets/demo.gif and assets/demo-card.png.
 //
-// The browser-app analogue of the capstone's demo.tape: drives the REAL app
-// against the REAL index in a scripted browser session, so every streamed
+// The browser-app analogue of the capstone's demo.tape. It drives the real
+// app against the real index in a scripted browser session, so every streamed
 // token and every path:line citation in the recording is genuine, not staged.
 // Refuses to record if the backend is on the mock provider.
 //
 // Prereqs (from the repo root):
 //   docker start askrepo-live-pg
 //   cd frontend && npm run build
-// Then run THROUGH secrun so keys flow via the environment (nothing secret
+// Then run through secrun so keys flow via the environment (nothing secret
 // appears in the recording):
 //   cd frontend && secrun env AMR_PREFER_LOCAL=0 \
 //     DATABASE_URL=postgresql://postgres:pg@localhost:5434/postgres \
 //     npm run demo:gif
 //
 // Outputs:
-//   assets/demo.gif       — the animated README demo (960px wide, 12fps)
-//   assets/demo-card.png  — a 1280x640 still for the GitHub social preview
+//   assets/demo.gif       the animated README demo (960px wide, 12fps)
+//   assets/demo-card.png  a 1280x640 still for the GitHub social preview
 
 import { execFileSync, spawn } from "node:child_process";
 import { mkdirSync, mkdtempSync, readdirSync, rmSync } from "node:fs";
