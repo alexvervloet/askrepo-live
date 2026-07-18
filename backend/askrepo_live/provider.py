@@ -67,15 +67,35 @@ class RealProvider:
     name = "real"
 
     async def answer(self, question: str, repo: str) -> AsyncIterator[Event]:
+        from ask_my_repo.answer import SYSTEM_PROMPT, build_prompt
+
         start = time.monotonic()
         chunks, deltas = await asyncio.to_thread(_answer_stream, question)
         yield "sources", [
             {"path": c.path, "start_line": c.start_line, "end_line": c.end_line}
             for c in chunks
         ]
+        prompt_chars = len(SYSTEM_PROMPT) + (
+            len(build_prompt(question, chunks)) if chunks else len(question)
+        )
+        output_chars = 0
         while (delta := await asyncio.to_thread(next, deltas, None)) is not None:
+            output_chars += len(delta)
             yield "token", {"text": delta}
-        yield "done", {"elapsed_ms": int((time.monotonic() - start) * 1000)}
+        # chars/4 is rough and thinking tokens never appear in the text stream,
+        # so this undercounts; the budget cap treats it as a floor
+        input_tokens = prompt_chars // 4
+        output_tokens = output_chars // 4
+        cost = (
+            input_tokens * config.PRICE_IN_PER_MTOK
+            + output_tokens * config.PRICE_OUT_PER_MTOK
+        ) / 1_000_000
+        yield "done", {
+            "elapsed_ms": int((time.monotonic() - start) * 1000),
+            "input_tokens_est": input_tokens,
+            "output_tokens_est": output_tokens,
+            "cost_usd_est": round(cost, 4),
+        }
 
 
 def _real_unavailable_reason() -> str | None:
