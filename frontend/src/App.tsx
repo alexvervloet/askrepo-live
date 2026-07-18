@@ -16,6 +16,7 @@ export default function App() {
   const [error, setError] = useState("");
   const [lastAsked, setLastAsked] = useState<{ question: string; repo: string } | null>(null);
   const [elapsedMs, setElapsedMs] = useState<number | null>(null);
+  const [costUsd, setCostUsd] = useState<number | null>(null);
   const abortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
@@ -49,6 +50,7 @@ export default function App() {
         break;
       case "done":
         setElapsedMs(e.elapsed_ms);
+        if (e.cost_usd_est !== undefined) setCostUsd(e.cost_usd_est);
         break;
     }
   }
@@ -61,6 +63,7 @@ export default function App() {
     setProvider("");
     setError("");
     setElapsedMs(null);
+    setCostUsd(null);
     setStatus("streaming");
     const ac = new AbortController();
     abortRef.current = ac;
@@ -166,6 +169,7 @@ export default function App() {
             <p className="answer-meta">
               {provider === "mock" ? "mock provider (canned)" : "retrieval + Claude"} ·{" "}
               {(elapsedMs / 1000).toFixed(1)}s
+              {costUsd !== null && ` · ~$${costUsd.toFixed(3)}`}
             </p>
           )}
         </section>

@@ -17,7 +17,7 @@ export type AskEvent =
   | { type: "meta"; provider: string; repo: string }
   | { type: "sources"; sources: Source[] }
   | { type: "token"; text: string }
-  | { type: "done"; elapsed_ms: number }
+  | { type: "done"; elapsed_ms: number; cost_usd_est?: number }
   | { type: "error"; message: string };
 
 export async function fetchRepos(): Promise<Repo[]> {
