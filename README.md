@@ -20,7 +20,7 @@ browser (React + Vite, SSE over fetch)
    │
    ▼
 FastAPI gateway
-   ├─ per-IP rate limit + daily budget cap      (Phase 2)
+   ├─ per-IP rate limit + daily budget cap
    ├─ serves the built frontend in prod
    ├─ /healthz for uptime monitoring
    ▼
@@ -45,7 +45,7 @@ and generation safely in public, not accepting uploads.
 | `meta` | `{provider, repo}` | first frame; `provider` is `"mock"` or `"real"` |
 | `sources` | `[{path, start_line, end_line}]` | retrieval results, sent before the answer |
 | `token` | `{text}` | answer text, incrementally |
-| `done` | `{elapsed_ms}` | stream finished cleanly |
+| `done` | `{elapsed_ms, ...}` | stream finished cleanly; real mode adds `input_tokens_est`, `output_tokens_est`, `cost_usd_est` |
 | `error` | `{message}` | terminal; the stream ends after this |
 
 The frontend streams with `fetch` and `ReadableStream` rather than
@@ -76,10 +76,21 @@ The streaming, the SSE protocol, and the UI wiring behave the same as in real
 mode; only the text is canned. Set `PROVIDER_STRICT=1` to refuse to start in
 that state instead. Same pattern as the deep-dive repos.
 
+## Guardrails
+
+Strangers can hit this API, so it defends itself. Per IP: a burst of 3
+requests, then 5 per minute, and at most 25 questions per rolling 24 hours.
+Globally: a $5 daily model budget, tracked in a Postgres ledger with a cost
+estimate per answer; once it is spent the API answers with a friendly `error`
+frame instead of calling the model. Questions are capped at 500 characters,
+and visitors cannot trigger indexing at all. Every knob is an env var (see
+`backend/askrepo_live/config.py`). The cost estimate undercounts slightly
+(thinking tokens are invisible to it), so the budget is set conservatively.
+
 ## Status
 
-Phases 0, 1, and 3 are done: the real pipeline works end to end locally and
-the UI is polished. Next is Phase 2, rate limiting and a daily budget cap,
-which has to land before the public deploy. See [PLAN.md](PLAN.md) for the
-phases and definitions of done. Deploy target is Fly.io + Neon Postgres
-(Phase 5); the app is host-agnostic until then.
+Phases 0 through 3 are done: the real pipeline works end to end locally, the
+UI is polished, and the guardrails above are tested and verified live. Next
+is Phase 4 (containerize) and Phase 5 (deploy). See [PLAN.md](PLAN.md) for
+the phases and definitions of done. Deploy target is Fly.io + Neon Postgres;
+the app is host-agnostic until then.
