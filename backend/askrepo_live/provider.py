@@ -20,13 +20,12 @@ _MOCK_SOURCES = [
 ]
 
 _MOCK_ANSWER = (
-    "[MOCK FALLBACK] No model was called. You asked {repo}: “{question}” "
-    "— and this canned reply is streaming word by word so the SSE plumbing, "
-    "the abort button, and the sources panel can all be exercised without keys. "
-    "The two sources shown are hard-coded but deep-link to real lines, so the "
-    "citation rendering is honest even when the answer is not. When the real "
-    "provider lands (PLAN.md, Phase 1) this text is replaced by a grounded "
-    "answer with citations from pgvector retrieval."
+    "[MOCK FALLBACK] No model was called. You asked {repo}: “{question}”. "
+    "This canned reply streams word by word so the SSE plumbing, the abort "
+    "button, and the sources panel can be exercised without keys. The two "
+    "sources are hard-coded but link to real lines. With keys and a database "
+    "configured, the real provider answers instead, grounded in pgvector "
+    "retrieval."
 )
 
 _BANNER = """\
