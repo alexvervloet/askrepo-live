@@ -1,4 +1,4 @@
-"""API smoke tests — no keys, no network, run against the mock provider."""
+"""API smoke tests: no keys, no network, run against the mock provider."""
 
 import json
 

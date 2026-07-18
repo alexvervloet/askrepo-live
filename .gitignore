@@ -7,7 +7,7 @@ __pycache__/
 node_modules/
 dist/
 
-# never — keys live in the Keychain, injected by secrun
+# never: keys live in the Keychain, injected by secrun
 .env
 
 # local artifacts

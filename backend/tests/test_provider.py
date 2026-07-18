@@ -1,4 +1,4 @@
-"""Provider unit tests — no keys, no network, no database."""
+"""Provider unit tests: no keys, no network, no database."""
 
 import asyncio
 from types import SimpleNamespace

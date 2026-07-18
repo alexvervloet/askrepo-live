@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Verify the environment for askrepo-live. Makes no paid call — Phase 0 is
+"""Verify the environment for askrepo-live. Makes no paid call. Phase 0 is
 fully keyless (mock provider); real keys only matter from Phase 1 on."""
 
 import shutil
@@ -53,7 +53,7 @@ from askrepo_live import config  # noqa: E402
 
 real_ready = bool(config.ANTHROPIC_API_KEY and config.VOYAGE_API_KEY and config.DATABASE_URL)
 check(
-    f"provider: {'real (keys + DB set)' if real_ready else 'mock — keyless, fine for Phase 0'}",
+    f"provider: {'real (keys + DB set)' if real_ready else 'mock (keyless, fine for Phase 0)'}",
     True,
 )
 

@@ -3,7 +3,7 @@
 import os
 
 # The fixed corpus list. Adding a repo here (and indexing it) is the only way
-# anything becomes askable — the public cannot trigger indexing.
+# anything becomes askable; the public cannot trigger indexing.
 CORPORA = {
     "ask-my-repo": {
         "github": "https://github.com/alexvervloet/ask-my-repo",

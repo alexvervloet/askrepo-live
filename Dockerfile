@@ -13,7 +13,7 @@ COPY backend/requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 COPY backend/askrepo_live ./askrepo_live
 COPY --from=web /app/dist ./static
-# no LM Studio in prod — query embeddings must match the Voyage-built index
+# no LM Studio in prod: query embeddings must match the Voyage-built index
 ENV STATIC_DIR=/app/static AMR_PREFER_LOCAL=0
 EXPOSE 8080
 CMD ["sh", "-c", "uvicorn askrepo_live.main:app --host 0.0.0.0 --port ${PORT:-8080}"]

@@ -25,7 +25,7 @@ export default function App() {
         if (rs.length > 0) setRepoName(rs[0].name);
       })
       .catch((e) => {
-        setError(`Backend unreachable — is uvicorn running? (${e})`);
+        setError(`Backend unreachable. Is uvicorn running? (${e})`);
         setStatus("error");
       });
   }, []);
@@ -98,7 +98,7 @@ export default function App() {
     <main>
       <header>
         <h1>askrepo</h1>
-        <p className="tagline">ask my code anything — retrieval-grounded, cited</p>
+        <p className="tagline">ask my code anything: retrieval-grounded, cited</p>
         {provider === "mock" && <span className="badge mock">MOCK</span>}
       </header>
 

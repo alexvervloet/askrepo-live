@@ -44,7 +44,7 @@ export async function askStream(
     try {
       detail = JSON.parse(raw).detail ?? raw;
     } catch {
-      // not JSON — show the raw body
+      // not JSON; show the raw body
     }
     throw new Error(detail || `request failed (${res.status})`);
   }
