@@ -41,15 +41,33 @@ surprise you.
 
 ## Phase 2: guardrails (done when the abuse tests pass)
 
-- [ ] Per-IP rate limit (token bucket; slowapi or hand-rolled, decide and note
-      why)
-- [ ] Global daily budget cap persisted in Postgres: count tokens and dollars
-      per answer, hard-stop with a friendly `error` SSE event once the day's
-      budget is spent
-- [ ] Question length already capped (Phase 0); add per-IP daily question count
-- [ ] Tests that hammer the API and assert 429s and the budget-exhausted event
-- [ ] Record the chosen numbers here (req/min per IP, $/day cap, max question
-      chars)
+- [x] Per-IP rate limit: hand-rolled token bucket, not slowapi. Why: the
+      mechanism is about thirty lines, wants an injectable clock for tests,
+      and sits in front of a streaming endpoint where slowapi's decorator
+      model fits poorly. In-memory on purpose; the Postgres budget is the
+      durable backstop.
+- [x] Global daily budget cap in Postgres (`gateway_spend` ledger, rolling
+      24 hours): per-answer token and dollar estimates from the real
+      provider's `done` frame; once spent, the API answers with a friendly
+      `error` frame and never calls the model. Verified live with
+      `DAILY_BUDGET_USD=0.001`.
+- [x] Per-IP daily question count from the same ledger. Question length was
+      already capped in Phase 0.
+- [x] Abuse tests: burst then 429s with `Retry-After`, per-IP isolation,
+      refill behavior, IP daily cap, budget-exhausted frame. Rate limiting
+      also verified live with curl (3x 200 then 429).
+- [x] Chosen numbers (all env-overridable):
+
+| knob | value | env var |
+|---|---|---|
+| burst per IP | 3 | `RATE_BURST` |
+| sustained per IP | 5/min | `RATE_PER_MIN` |
+| questions per IP | 25 per 24h | `IP_DAILY_LIMIT` |
+| global model budget | $5.00 per 24h | `DAILY_BUDGET_USD` |
+| question length | 500 chars | `MAX_QUESTION_CHARS` |
+
+**Phase 2 complete.** First measured real answer: 1215 input tokens, 212
+output tokens, ~$0.011 estimated.
 
 ## Phase 3: frontend polish (done when the demo GIF is in the README)
 
@@ -112,3 +130,8 @@ surprise you.
 - **2026-07-17**: ask-my-repo's `Config` reads env at class-definition time
   (dataclass field defaults), so `AMR_*` vars must be set before the process
   starts. Setting them in code after import does nothing.
+- **2026-07-18**: the cost estimate systematically undercounts. Adaptive
+  thinking bills as output tokens that never appear in the text stream, and
+  chars/4 is a rough tokenizer stand-in. Treat the ledger as a floor and set
+  `DAILY_BUDGET_USD` with headroom; exact usage lives in the provider's
+  billing console, and Langfuse (Phase 6) will narrow the gap.
