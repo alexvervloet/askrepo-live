@@ -61,8 +61,13 @@ surprise you.
       before calling Phase 5 done.
 - [x] MOCK badge only when provider=mock; real mode shows a subtle
       "retrieval + Claude · Ns" footer under the answer
-- [ ] Short screen-recording GIF in the README — needs a human screen recording
-      (QuickTime/Kap), then `![demo](assets/demo.gif)` in the README
+- [x] Demo GIF in the README — not hand-recorded: `npm run demo:gif`
+      (Playwright + ffmpeg) is the browser-app analogue of the capstone's
+      `demo.tape`, scripted and reproducible, real app + real index, refuses
+      to record mock. Also produces the 1280×640 social-preview card
+      (repo Settings → Social preview).
+
+**Phase 3 complete.**
 
 ## Phase 4 — containerize (done when the fresh-machine block works)
 

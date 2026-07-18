@@ -6,6 +6,13 @@ FastAPI gateway. The point of this project is the part most portfolios skip —
 **an AI app strangers can actually hit**: rate-limited, budget-capped,
 observable, and cheap enough to leave running.
 
+![askrepo streaming a real cited answer about its own fallback code](assets/demo.gif)
+
+> _The recording is scripted and reproducible — `npm run demo:gif` (see the
+> header of `frontend/scripts/record-demo.mjs`) drives the real app against the
+> real index with Playwright and re-renders this GIF plus a 1280×640 social
+> card. It refuses to record the mock provider._
+
 ## Architecture
 
 ```
