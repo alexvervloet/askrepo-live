@@ -12,8 +12,14 @@ async def _collect(gen):
 
 def test_real_provider_adapts_answer_stream_to_wire_events(monkeypatch):
     chunks = [
-        SimpleNamespace(path="ask_my_repo/client.py", start_line=110, end_line=127),
-        SimpleNamespace(path="ask_my_repo/answer.py", start_line=51, end_line=67),
+        SimpleNamespace(
+            path="ask_my_repo/client.py", start_line=110, end_line=127,
+            qualname="embed", code="def embed(): ...",
+        ),
+        SimpleNamespace(
+            path="ask_my_repo/answer.py", start_line=51, end_line=67,
+            qualname="answer", code="def answer(): ...",
+        ),
     ]
     monkeypatch.setattr(
         provider, "_answer_stream", lambda q: (chunks, iter(["Hel", "lo."]))
@@ -29,6 +35,10 @@ def test_real_provider_adapts_answer_stream_to_wire_events(monkeypatch):
     }
     assert [d["text"] for e, d in events if e == "token"] == ["Hel", "lo."]
     assert events[-1][0] == "done"
+    done = events[-1][1]
+    assert done["input_tokens_est"] > 0
+    assert done["output_tokens_est"] == len("Hello.") // 4
+    assert done["cost_usd_est"] > 0
 
 
 def test_keyless_env_selects_mock():
