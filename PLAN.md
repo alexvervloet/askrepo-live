@@ -1,24 +1,25 @@
-# Plan — phases and definitions of done
+# Plan: phases and definitions of done
 
-Every phase ends with something checkable — a passing run, a filled table, a
-public URL — not a feeling. Gotchas go in the log at the bottom the moment they
+Every phase ends with something checkable: a passing run, a filled table, a
+public URL. Not a feeling. Gotchas go in the log at the bottom the moment they
 surprise you.
 
-## Phase 0 — plumbing (done when the keyless smoke passes)
+## Phase 0: plumbing (done when the keyless smoke passes)
 
 - [x] `python check_setup.py` all green
-- [x] `python -m pytest backend` green — healthz, corpus list, SSE stream
-      shape (meta → sources → token… → done), unknown-repo 404, overlong-question 422
+- [x] `python -m pytest backend` green: healthz, corpus list, SSE stream shape
+      (meta, then sources, then tokens, then done), unknown-repo 404,
+      overlong-question 422
 - [x] `curl -N` against `/api/ask` shows the mock answer streaming as SSE frames
 - [x] `npm run dev` + backend: the browser UI streams the mock answer, shows
       the MOCK badge, sources render as GitHub deep links, Stop aborts
       mid-stream (verified in-browser 2026-07-17)
 - [x] `npm run build` clean (tsc + vite)
 
-## Phase 1 — real pipeline (done when a real cited answer renders locally)
+## Phase 1: real pipeline (done when a real cited answer renders locally)
 
-- [x] Add `pyproject.toml` to ask-my-repo so it installs as a package —
-      upstream [PR #1](https://github.com/alexvervloet/ask-my-repo/pull/1),
+- [x] Add `pyproject.toml` to ask-my-repo so it installs as a package.
+      Upstream [PR #1](https://github.com/alexvervloet/ask-my-repo/pull/1),
       which also adds `AMR_PREFER_LOCAL`, `complete_stream()`, `answer_stream()`
 - [ ] Swap the requirements pin from the `packaging-and-streaming` branch to
       main once PR #1 merges
@@ -26,82 +27,88 @@ surprise you.
       :5432); indexed with ask-my-repo's CLI, Voyage forced via
       `AMR_PREFER_LOCAL=0`
 - [x] `RealProvider` wraps `answer_stream()` behind the same event interface as
-      the mock — the suspected upstream streaming variant was indeed needed
+      the mock. The plan suspected upstream would need a streaming variant, and
+      it did.
 - [x] Frontend renders real citations that deep-link to the right GitHub lines
       (verified in-browser 2026-07-17)
-- [x] Corpus table (2026-07-17, voyage-3, 1024-d; answer e2e: 13.4s total for
-      a 5-citation grounded answer via claude-opus-4-8):
+- [x] Corpus table (2026-07-17, voyage-3, 1024-d; answer end to end: 13.4s
+      total for a 5-citation grounded answer via claude-opus-4-8):
 
 | corpus | chunks | index time | embed cost ($) |
 |---|---|---|---|
 | ask-my-repo | 75 (11 files) | 1.4s | ~$0.0008 (~12.6k tokens) |
 | (second repo TBD) | | | |
 
-## Phase 2 — guardrails (done when the abuse tests pass)
+## Phase 2: guardrails (done when the abuse tests pass)
 
-- [ ] Per-IP rate limit (token bucket; slowapi or hand-rolled — decide and note why)
-- [ ] Global **daily budget cap** persisted in Postgres: count tokens + $ per
-      answer, hard-stop with a friendly `error` SSE event when the day's budget
-      is spent
+- [ ] Per-IP rate limit (token bucket; slowapi or hand-rolled, decide and note
+      why)
+- [ ] Global daily budget cap persisted in Postgres: count tokens and dollars
+      per answer, hard-stop with a friendly `error` SSE event once the day's
+      budget is spent
 - [ ] Question length already capped (Phase 0); add per-IP daily question count
 - [ ] Tests that hammer the API and assert 429s and the budget-exhausted event
-- [ ] Record the chosen numbers here (req/min per IP, $/day cap, max question chars)
+- [ ] Record the chosen numbers here (req/min per IP, $/day cap, max question
+      chars)
 
-## Phase 3 — frontend polish (done when the demo GIF is in the README)
+## Phase 3: frontend polish (done when the demo GIF is in the README)
 
-- [x] Regenerate button (re-runs the last *asked* question, not the edited
+- [x] Regenerate button (re-runs the last asked question, not the edited
       textarea); error panel with `role="alert"`, parsed FastAPI detail, and a
-      regenerate hint. Budget-exhausted arrives as an `error` frame with a
+      regenerate hint. Budget-exhausted will arrive as an `error` frame with a
       friendly message (Phase 2), which this panel renders as-is.
-- [x] Answers render as markdown (react-markdown + remark-gfm) — real answers
-      arrive with headings, code blocks, and tables; added beyond the original
-      DoD because plain text undersold them
-- [x] Mobile pass in code — theme-color metas, 44px touch targets, full-width
+- [x] Answers render as markdown (react-markdown + remark-gfm). Real answers
+      arrive with headings, code blocks, and tables; plain text was selling
+      them short. Added beyond the original definition of done.
+- [x] Mobile pass in code: theme-color metas, 44px touch targets, full-width
       buttons under 480px, long source paths wrap. Check on an actual phone
       before calling Phase 5 done.
-- [x] MOCK badge only when provider=mock; real mode shows a subtle
+- [x] MOCK badge only when provider=mock; real mode shows a small
       "retrieval + Claude · Ns" footer under the answer
-- [x] Demo GIF in the README — not hand-recorded: `npm run demo:gif`
+- [x] Demo GIF in the README. Not hand-recorded: `npm run demo:gif`
       (Playwright + ffmpeg) is the browser-app analogue of the capstone's
-      `demo.tape`, scripted and reproducible, real app + real index, refuses
-      to record mock. Also produces the 1280×640 social-preview card
-      (repo Settings → Social preview).
+      `demo.tape`. Scripted, reproducible, real app and real index, refuses to
+      record mock. Also produces the 1280x640 social-preview card (repo
+      Settings, then Social preview).
 
 **Phase 3 complete.**
 
-## Phase 4 — containerize (done when the fresh-machine block works)
+## Phase 4: containerize (done when the fresh-machine block works)
 
-- [ ] Multi-stage Dockerfile (node build → python runtime) serves UI + API from
-      one image
+- [ ] Multi-stage Dockerfile (node build, then python runtime) serves UI + API
+      from one image
 - [ ] `docker compose up` runs app + pgvector locally, end to end
 - [ ] A copy-paste block in the README that works on a machine that isn't mine
 
-## Phase 5 — deploy (done when the public URL survives a week)
+## Phase 5: deploy (done when the public URL survives a week)
 
-- [ ] Neon Postgres (free tier, pgvector) + Fly.io smallest always-on VM —
-      billing is a live decision, confirm before creating anything paid
-- [ ] Secrets via `fly secrets set` fed from the Keychain (`secrun`), never files
+- [ ] Neon Postgres (free tier, pgvector) + Fly.io smallest always-on VM.
+      Billing is a live decision; confirm before creating anything paid.
+- [ ] Secrets via `fly secrets set` fed from the Keychain (`secrun`), never
+      files
 - [ ] Index the corpora against Neon; uptime monitor on `/healthz`
-- [ ] Public URL in the README + first-week table: uptime, requests, $ total
+- [ ] Public URL in the README + first-week table: uptime, requests, total
+      dollars
 
-## Phase 6 — observability (done when the dashboard shows a week of traffic)
+## Phase 6: observability (done when the dashboard shows a week of traffic)
 
-- [ ] Langfuse trace per `/api/ask` (question, retrieval, tokens, cost, latency)
+- [ ] Langfuse trace per `/api/ask` (question, retrieval, tokens, cost,
+      latency)
 - [ ] Dashboard screenshot + link in README; note what the first week's trend
-      actually showed
+      showed
 
 ## Gotcha log
 
-- **2026-07-17** — a marker streamed word-by-word (`[MOCK FALLBACK]`) never
-  appears contiguously in the raw SSE body; each word is its own `token` frame.
-  Anything that searches the stream (tests, log greps) must reassemble the
-  token frames first, the way the frontend does.
-- **2026-07-17** — **index and query embeddings must come from the same
-  model.** ask-my-repo embeds queries local-first, so an index built with
-  Voyage would be searched with LM Studio vectors whenever the local box is
-  reachable — silently wrong answers, no error. Hence upstream
-  `AMR_PREFER_LOCAL=0` (forced in the Docker image) and the hard gate in
-  `get_provider()`: real mode refuses to start unless the flag is set.
-- **2026-07-17** — ask-my-repo's `Config` reads env at class-definition time
+- **2026-07-17**: a marker streamed word-by-word (`[MOCK FALLBACK]`) never
+  appears contiguously in the raw SSE body; each word is its own `token`
+  frame. Anything that searches the stream (tests, log greps) must reassemble
+  the token frames first, the way the frontend does.
+- **2026-07-17**: index and query embeddings must come from the same model.
+  ask-my-repo embeds queries local-first, so an index built with Voyage would
+  be searched with LM Studio vectors whenever the local box is reachable.
+  Silently wrong answers, no error. Hence upstream `AMR_PREFER_LOCAL=0`
+  (forced in the Docker image) and the hard gate in `get_provider()`: real
+  mode refuses to start unless the flag is set.
+- **2026-07-17**: ask-my-repo's `Config` reads env at class-definition time
   (dataclass field defaults), so `AMR_*` vars must be set before the process
-  starts / the module imports — setting them in code after import does nothing.
+  starts. Setting them in code after import does nothing.
