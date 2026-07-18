@@ -70,7 +70,8 @@ const context = await browser.newContext({
 });
 const page = await context.newPage();
 await page.goto(BASE);
-await page.waitForSelector("select option");
+// options in a closed <select> are "hidden" to the default visibility wait
+await page.waitForSelector("select option", { state: "attached" });
 await sleep(800);
 
 await page.locator("textarea").pressSequentially(QUESTION, { delay: 40 });
