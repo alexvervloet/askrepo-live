@@ -31,10 +31,12 @@ const QUESTION =
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
+// stdio ignored: an inherited pipe outlives this process if cleanup is ever
+// skipped, wedging whatever shell pipeline invoked npm run demo:gif
 const server = spawn(
   "../.venv/bin/uvicorn",
   ["askrepo_live.main:app", "--app-dir", "../backend", "--port", String(PORT)],
-  { stdio: "inherit" },
+  { stdio: "ignore" },
 );
 
 function die(msg) {
