@@ -53,6 +53,30 @@ The frontend streams with `fetch` and `ReadableStream` rather than
 
 Also: `GET /api/repos` (the corpus list), `GET /healthz`.
 
+## Run it with Docker
+
+Works on a machine that is not mine. Keyless gets you the full app on the
+mock provider:
+
+```bash
+git clone https://github.com/alexvervloet/askrepo-live && cd askrepo-live
+docker compose up --build
+# open http://localhost:8080
+```
+
+Real mode needs keys and a one-time index of the corpus into the compose
+database (host port 5435):
+
+```bash
+export ANTHROPIC_API_KEY=... VOYAGE_API_KEY=...   # or run through secrun
+git clone https://github.com/alexvervloet/ask-my-repo /tmp/ask-my-repo
+python -m venv /tmp/amr-venv && /tmp/amr-venv/bin/pip install "git+https://github.com/alexvervloet/ask-my-repo@packaging-and-streaming"
+cd /tmp/ask-my-repo && AMR_PREFER_LOCAL=0 \
+  AMR_DATABASE_URL=postgresql://postgres:pg@localhost:5435/postgres \
+  /tmp/amr-venv/bin/ask-my-repo index .
+cd - && docker compose up --build -d
+```
+
 ## Run it locally
 
 ```bash
