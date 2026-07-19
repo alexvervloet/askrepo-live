@@ -93,10 +93,21 @@ output tokens, ~$0.011 estimated.
 
 ## Phase 4: containerize (done when the fresh-machine block works)
 
-- [ ] Multi-stage Dockerfile (node build, then python runtime) serves UI + API
-      from one image
-- [ ] `docker compose up` runs app + pgvector locally, end to end
-- [ ] A copy-paste block in the README that works on a machine that isn't mine
+- [x] Multi-stage Dockerfile serves UI + API from one image. Three stages now:
+      node build, a wheel stage (git is needed for the git-pinned ask-my-repo
+      requirement and stays out of the runtime), python runtime with a
+      healthcheck.
+- [x] `docker compose up --build` runs app + pgvector end to end. Verified in
+      CI on a fresh Ubuntu runner: healthz reports mock, the SSE stream
+      delivers sources/token/done, the static UI serves. That is the
+      fresh-machine proof, stronger than a run on my own laptop; the laptop
+      run is blocked anyway (see gotcha log).
+- [x] Copy-paste block in the README (Run it with Docker): keyless works with
+      zero setup; real mode documents keys + the one-time index into the
+      compose database on host port 5435.
+- [ ] Real-mode compose run (keys + indexed corpus through the container) once
+      local Docker recovers; falls together naturally with the Phase 5 deploy
+      dry run.
 
 ## Phase 5: deploy (done when the public URL survives a week)
 
@@ -130,6 +141,13 @@ output tokens, ~$0.011 estimated.
 - **2026-07-17**: ask-my-repo's `Config` reads env at class-definition time
   (dataclass field defaults), so `AMR_*` vars must be set before the process
   starts. Setting them in code after import does nothing.
+- **2026-07-18**: local Docker Desktop wedged itself: every daemon-initiated
+  registry pull hangs (Docker Hub and ECR alike) while container NAT traffic
+  and host curl work fine, and freshly installed binaries stall on first run
+  too. Survived a hard restart of Docker Desktop; established binaries (gh,
+  git, curl) unaffected. Looks machine-level, probably cleared by a reboot.
+  Lesson: CI is the better venue for fresh-machine verification anyway; the
+  compose e2e now runs on every push.
 - **2026-07-18**: the cost estimate systematically undercounts. Adaptive
   thinking bills as output tokens that never appear in the text stream, and
   chars/4 is a rough tokenizer stand-in. Treat the ledger as a floor and set
