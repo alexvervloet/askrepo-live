@@ -1,0 +1,28 @@
+# Fly.io deploy config (Phase 5). The image serves UI + API on one port.
+# Always-on by design: a portfolio demo that cold-starts is a broken demo.
+
+app = "askrepo-live"
+primary_region = "sjc"
+
+[env]
+  PORT = "8080"
+  # AMR_PREFER_LOCAL, TRUST_PROXY, and STATIC_DIR are baked into the image.
+  # Keys and DATABASE_URL arrive via `fly secrets set`, never this file.
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = "off"
+  auto_start_machines = true
+  min_machines_running = 1
+
+  [[http_service.checks]]
+    interval = "30s"
+    timeout = "5s"
+    grace_period = "10s"
+    method = "GET"
+    path = "/healthz"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"
