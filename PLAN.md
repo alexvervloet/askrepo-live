@@ -114,11 +114,23 @@ output tokens, ~$0.011 estimated.
 
 ## Phase 5: deploy (done when the public URL survives a week)
 
-- [ ] Neon Postgres (free tier, pgvector) + Fly.io smallest always-on VM.
-      Billing is a live decision; confirm before creating anything paid.
-- [ ] Secrets via `fly secrets set` fed from the Keychain (`secrun`), never
-      files
-- [ ] Index the corpora against Neon; uptime monitor on `/healthz`
+Prep done 2026-07-19: flyctl installed, `fly.toml` committed (always-on
+shared-cpu-1x, 512MB, healthz check, ~$3-4/month). Runbook below; steps
+marked [Alex] create accounts or cost money and are his to run.
+
+- [ ] [Alex] Fly.io account: `fly auth signup` (card on file)
+- [ ] [Alex] Neon account (free tier): create a project, then
+      `CREATE EXTENSION vector;` in its database, and keep the connection
+      string handy
+- [ ] `fly launch --no-deploy` from the repo root (accepts the committed
+      fly.toml)
+- [ ] Secrets from the Keychain, never files:
+      `secrun sh -c 'fly secrets set ANTHROPIC_API_KEY=$ANTHROPIC_API_KEY VOYAGE_API_KEY=$VOYAGE_API_KEY DATABASE_URL=<neon dsn>'`
+- [ ] Index against Neon from this machine (from the ask-my-repo root):
+      `secrun env AMR_PREFER_LOCAL=0 AMR_DATABASE_URL=<neon dsn> ask-my-repo index .`
+- [ ] `fly deploy`; confirm `https://askrepo-live.fly.dev/healthz` says
+      provider real, then ask one question from a phone
+- [ ] Uptime monitor (UptimeRobot free tier) on `/healthz`
 - [ ] Public URL in the README + first-week table: uptime, requests, total
       dollars
 
