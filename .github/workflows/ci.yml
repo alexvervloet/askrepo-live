@@ -26,3 +26,33 @@ jobs:
         working-directory: frontend
       - run: npm run build
         working-directory: frontend
+
+  # Proves the fresh-machine story: build the image and run the whole compose
+  # stack keyless on a runner that has never seen this repo.
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker compose up --build -d
+      - name: wait for healthz
+        run: |
+          for i in $(seq 1 60); do
+            curl -sf localhost:8080/healthz > /dev/null && break
+            sleep 2
+          done
+          curl -sf localhost:8080/healthz | grep -q '"provider":"mock"'
+      - name: mock answer streams over SSE
+        run: |
+          curl -sfN --max-time 30 localhost:8080/api/ask \
+            -H 'Content-Type: application/json' \
+            -d '{"question":"smoke","repo":"ask-my-repo"}' > stream.txt
+          grep -q "event: sources" stream.txt
+          grep -q "event: token" stream.txt
+          grep -q "event: done" stream.txt
+      - name: static UI is served
+        run: curl -sf localhost:8080/ | grep -qi "<title>askrepo"
+      - name: logs on failure
+        if: failure()
+        run: docker compose logs
+      - if: always()
+        run: docker compose down -v
