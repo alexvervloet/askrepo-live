@@ -1,0 +1,37 @@
+# Local end-to-end run: the app image plus a pgvector Postgres.
+#
+# Keyless: `docker compose up --build` serves the UI on :8080 in mock mode.
+# Real mode: put ANTHROPIC_API_KEY and VOYAGE_API_KEY in the environment
+# (through secrun on this machine), index the corpus into the compose db
+# (host port 5435; see the README), then restart the app service.
+
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_PASSWORD: pg
+    ports:
+      - "5435:5432" # 5434 belongs to the dev container askrepo-live-pg
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 2s
+      timeout: 2s
+      retries: 15
+
+  app:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      DATABASE_URL: postgresql://postgres:pg@db:5432/postgres
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      VOYAGE_API_KEY: ${VOYAGE_API_KEY:-}
+      TRUST_PROXY: "0" # no proxy in front of a local compose run
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  pgdata:
