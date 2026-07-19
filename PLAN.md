@@ -105,9 +105,12 @@ output tokens, ~$0.011 estimated.
 - [x] Copy-paste block in the README (Run it with Docker): keyless works with
       zero setup; real mode documents keys + the one-time index into the
       compose database on host port 5435.
-- [ ] Real-mode compose run (keys + indexed corpus through the container) once
-      local Docker recovers; falls together naturally with the Phase 5 deploy
-      dry run.
+- [x] Real-mode compose run, verified 2026-07-19 after local Docker recovered:
+      indexed into the compose db (75 chunks), `secrun docker compose up`
+      served a real cited answer through the container in 12.2s (~$0.011),
+      and the spend row landed in the compose db's ledger.
+
+**Phase 4 complete.**
 
 ## Phase 5: deploy (done when the public URL survives a week)
 
