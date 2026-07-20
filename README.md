@@ -117,7 +117,10 @@ and visitors cannot trigger indexing at all. Every knob is an env var (see
 ## Status
 
 Deployed: a single always-on Fly.io machine (sjc) with Neon Postgres
-(us-west-2) holding the pgvector index and the spend ledger. The rate limit
-and budget cap are verified against the public URL. Remaining per
-[PLAN.md](PLAN.md): an uptime monitor, the first-week numbers, and Langfuse
-traces (Phase 6).
+(us-west-2) holding the pgvector index and the spend ledger. Every answer is
+traced in Langfuse with token and cost figures. The rate limit and budget
+cap are verified against the public URL. Remaining per [PLAN.md](PLAN.md):
+the first-week numbers and a dashboard screenshot.
+
+What building this taught me, from failing tests to deploy-tool defaults:
+[LESSONS.md](LESSONS.md).
