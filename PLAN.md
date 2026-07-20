@@ -147,11 +147,16 @@ marked [Alex] create accounts or cost money and are his to run.
       tracer call is exception-proof because observability must never take
       the product down. Explicit object API, not context managers: current-
       span context vars can leak between interleaved async streams.
-- [ ] [Alex] Langfuse Cloud account (free tier): create a project named
-      `askrepo-live`, copy the public and secret keys into the Keychain as
-      `deepdives:LANGFUSE_PUBLIC_KEY` and `deepdives:LANGFUSE_SECRET_KEY`
-- [ ] Set the two keys (plus `LANGFUSE_HOST`) as Fly secrets and redeploy;
-      ask a question; verify the trace via the Langfuse API
+- [x] [Alex] Langfuse Cloud account (US region); keys in the Keychain as
+      `deepdives:LANGFUSE_PUBLIC_KEY` / `deepdives:LANGFUSE_SECRET_KEY`
+- [x] Keys set as Fly secrets from the Keychain; redeployed; verified via the
+      Langfuse API 2026-07-19: trace named `ask` with the client IP as user,
+      trace-level io, retriever + generation observations, model
+      claude-opus-4-8, usage 1268/243, cost $0.0124 matching the done frame.
+      Trace-name gotcha: the explicit object API needs
+      `propagate_attributes(trace_name=...)` around span creation and
+      `set_trace_io()` at finish; neither is derived automatically the way
+      the context-manager API does it.
 - [ ] Dashboard screenshot + link in README; note what the first week's trend
       showed
 
