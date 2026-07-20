@@ -140,8 +140,18 @@ marked [Alex] create accounts or cost money and are his to run.
 
 ## Phase 6: observability (done when the dashboard shows a week of traffic)
 
-- [ ] Langfuse trace per `/api/ask` (question, retrieval, tokens, cost,
-      latency)
+- [x] Code shipped 2026-07-19: one trace per `/api/ask` (root span with
+      question/repo/provider/ip, a retriever span that ends when sources
+      arrive, the model call as a generation carrying token and cost
+      estimates, errors marked at ERROR level). No-op without keys; every
+      tracer call is exception-proof because observability must never take
+      the product down. Explicit object API, not context managers: current-
+      span context vars can leak between interleaved async streams.
+- [ ] [Alex] Langfuse Cloud account (free tier): create a project named
+      `askrepo-live`, copy the public and secret keys into the Keychain as
+      `deepdives:LANGFUSE_PUBLIC_KEY` and `deepdives:LANGFUSE_SECRET_KEY`
+- [ ] Set the two keys (plus `LANGFUSE_HOST`) as Fly secrets and redeploy;
+      ask a question; verify the trace via the Langfuse API
 - [ ] Dashboard screenshot + link in README; note what the first week's trend
       showed
 
