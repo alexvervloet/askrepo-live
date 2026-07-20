@@ -1,5 +1,8 @@
 # askrepo-live
 
+**Live at [askrepo-live.fly.dev](https://askrepo-live.fly.dev)** since
+2026-07-19.
+
 The deployed face of [ask-my-repo](https://github.com/alexvervloet/ask-my-repo):
 a streaming chat UI over a pre-indexed set of my repos, behind a FastAPI
 gateway. Most portfolio AI projects only ever run on the author's laptop. This
@@ -113,8 +116,8 @@ and visitors cannot trigger indexing at all. Every knob is an env var (see
 
 ## Status
 
-Phases 0 through 3 are done: the real pipeline works end to end locally, the
-UI is polished, and the guardrails above are tested and verified live. Next
-is Phase 4 (containerize) and Phase 5 (deploy). See [PLAN.md](PLAN.md) for
-the phases and definitions of done. Deploy target is Fly.io + Neon Postgres;
-the app is host-agnostic until then.
+Deployed: a single always-on Fly.io machine (sjc) with Neon Postgres
+(us-west-2) holding the pgvector index and the spend ledger. The rate limit
+and budget cap are verified against the public URL. Remaining per
+[PLAN.md](PLAN.md): an uptime monitor, the first-week numbers, and Langfuse
+traces (Phase 6).
