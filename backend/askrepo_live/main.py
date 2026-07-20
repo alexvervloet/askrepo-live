@@ -8,7 +8,7 @@ from fastapi.responses import StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
-from . import budget, config
+from . import budget, config, tracing
 from .guardrails import RateLimiter, client_ip
 from .provider import get_provider
 
@@ -16,6 +16,7 @@ log = logging.getLogger("askrepo_live")
 
 app = FastAPI(title="askrepo-live")
 provider = get_provider()
+tracing.init()
 limiter = RateLimiter(burst=config.RATE_BURST, per_min=config.RATE_PER_MIN)
 
 BUDGET_MESSAGE = (
@@ -82,14 +83,19 @@ async def ask(req: AskRequest, request: Request) -> StreamingResponse:
 
     async def stream():
         yield sse("meta", {"provider": provider.name, "repo": req.repo})
+        tracer = tracing.AskTracer(req.question, req.repo, provider.name, ip)
         done_data = None
+        error = None
         try:
             async for event, data in provider.answer(req.question, req.repo):
                 if event == "done":
                     done_data = data
+                tracer.event(event, data)
                 yield sse(event, data)
         except Exception as exc:  # surface as a terminal frame, never a hung stream
-            yield sse("error", {"message": str(exc)})
+            error = str(exc)
+            yield sse("error", {"message": error})
+        tracer.finish(error=error)
         if provider.name == "real" and done_data and "cost_usd_est" in done_data:
             try:
                 await asyncio.to_thread(

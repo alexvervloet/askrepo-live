@@ -3,3 +3,4 @@ uvicorn[standard]>=0.30
 httpx>=0.27
 pytest>=8
 ask-my-repo @ git+https://github.com/alexvervloet/ask-my-repo
+langfuse>=4
