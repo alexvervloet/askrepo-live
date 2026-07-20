@@ -61,15 +61,21 @@ class AskTracer:
         if _client is None:
             return
         try:
-            self._root = _client.start_observation(
-                name="ask",
-                as_type="span",
-                input=question,
-                metadata={"repo": repo, "provider": provider_name, "ip": ip},
-            )
-            self._retrieval = self._root.start_observation(
-                name="retrieval", as_type="retriever", input=question
-            )
+            from langfuse import propagate_attributes
+
+            # trace-level name and user land via attribute propagation; span
+            # creation is synchronous here, so the context manager cannot leak
+            # across interleaved requests
+            with propagate_attributes(trace_name="ask", user_id=ip):
+                self._root = _client.start_observation(
+                    name="ask",
+                    as_type="span",
+                    input=question,
+                    metadata={"repo": repo, "provider": provider_name, "ip": ip},
+                )
+                self._retrieval = self._root.start_observation(
+                    name="retrieval", as_type="retriever", input=question
+                )
         except Exception:
             log.exception("langfuse: trace start failed")
             self._root = None
@@ -117,10 +123,12 @@ class AskTracer:
                 self._retrieval.end()
             if self._gen is not None:
                 self._gen.end()
+            output = error if error is not None else "".join(self._answer)
+            self._root.set_trace_io(input=self._question, output=output)
             if error is not None:
                 self._root.update(level="ERROR", status_message=error, output=error)
             else:
-                self._root.update(output="".join(self._answer))
+                self._root.update(output=output)
             self._root.end()
         except Exception:
             log.exception("langfuse: trace finish failed")
